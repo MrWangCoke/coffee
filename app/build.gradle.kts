@@ -66,6 +66,19 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.compose.material:material-icons-core:1.7.8")
+    implementation("io.coil-kt:coil-compose:2.6.0") // 请使用最新版本
+
+    // 1. Coil: 用于加载网络图片 (如果你之前还没加的话)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // 2. Retrofit: 核心网络请求库
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+
+    // 3. Kotlinx Serialization Converter: 让 Retrofit 知道如何使用你已经配置好的 Kotlin Serialization 来解析 JSON
+    implementation("com.squareup.retrofit2:converter-kotlinx-serialization:2.11.0")
+
+    // 4. OkHttp Logging Interceptor: 极其重要的调试工具，能在 Logcat 里帮你打印出所有的网络请求网址和收到的 JSON 数据
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     val nav_version = "2.9.7"
     implementation("androidx.navigation:navigation-compose:2.9.7")
