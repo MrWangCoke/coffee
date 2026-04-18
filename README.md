@@ -1,68 +1,90 @@
+# ☕ Coffee App：基于 Jetpack Compose 的现代响应式电商实战
+
+![Android](https://img.shields.io/badge/Platform-Android-brightgreen.svg) ![Kotlin](https://img.shields.io/badge/Language-Kotlin-blue.svg) ![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-orange.svg) ![Architecture](https://img.shields.io/badge/Architecture-MVVM-red.svg)
+
+## 📋 项目简介
+本项目是一个采用现代 Android 开发技术栈（Kotlin + Compose + MVVM）构建的高性能咖啡电商应用。项目通过从本地静态资源驱动向 **云端数据驱动 (Data-Driven)** 的演进，深度实践了响应式编程、异步网络处理及组件化设计规范。
+
+---
+
+## ✨ 核心特性
+
+### 1. 响应式架构与状态管理
+* **MVVM 深度实践**：严格遵循单向数据流 (UDF) 模式，利用 `ViewModel` 隔离 UI 逻辑与业务数据。
+* **响应式状态流**：使用 `StateFlow` 实现 UI 状态的精准分发，确保界面实时反映底层数据变化。
+* **生命周期感知**：结合 `viewModelScope` 自动管理协程生命周期，彻底杜绝内存泄漏。
+
+### 2. 动态 Banner 系统 (今日核心更新)
+* **异步网络轮播**：集成 `HorizontalPager` 实现丝滑的 Banner 切换，数据完全由云端 API 动态配置。
+* **智能图片处理**：引入 **Coil** 库处理网络图片，内置多级缓存机制、占位图显示及失败兜底保护。
+* **交互优化**：通过 `LaunchedEffect` 与协程 `delay` 实现智能自动轮播，并在用户手动干预时自动重置计时。
+
+### 3. 企业级网络封装
+* **Retrofit 接口设计**：将 HTTP 请求抽象为干净的 Kotlin 接口，利用 `suspend` 关键字实现非阻塞式调用。
+* **全链路日志监控**：集成 `OkHttp Logging Interceptor`，在调试阶段实时监控请求耗时、状态码及 JSON Payload。
+* **现代序列化**：舍弃传统的 Gson，采用 **Kotlinx Serialization**，提供更安全的 Kotlin 类型检查与更好的性能。
+
+---
+
+## 🏗️ 架构设计图示
+
+项目采用分层架构，确保代码的可测试性与可扩展性：
 
 
-# Coffee App - 基于 Jetpack Compose 的现代咖啡电商应用
 
-这是一个基于 Android 平台的咖啡电商与展示应用。本项目采用现代化的 Android 开发技术栈，为用户提供流畅、直观的咖啡选购体验。
+* **Presentation (UI 层)**：负责渲染 `Compose` 组件，不持有任何业务逻辑。
+* **ViewModel (引擎层)**：负责数据请求、状态转换与“广播” (StateFlow)。
+* **Data (数据层)**：包含 `NetworkManager` (Retrofit) 与 `API` 接口，负责与后端交互。
 
-## 📖 项目内容
+---
 
-本项目是一个完整的电商前端架构实现，主要使用 **Kotlin** 编写，并完全基于 **Jetpack Compose** 声明式 UI 框架构建。应用内部划分了清晰的页面与组件结构，包含以下核心模块：
+## 🛠️ 技术栈详情
 
-* **首页 (Home)**：支持顶部搜索条、咖啡分类标签栏 (Category Chips) 以及网格排列的咖啡产品列表。
-* **商品详情 (Details)**：展示单品咖啡的高清图片与详细介绍，支持不同杯型/尺寸选择，并提供一键加入购物车功能。
-* **购物车 (Cart)**：管理用户准备结算的商品列表，集成了支付方式选择卡片 (Payment Mode Selection)。
-* **收藏夹 (Favourites)**：用户可以收藏心仪的咖啡饮品，随时在独立页面快速查看。
-* **个人中心 (Profile)**：管理用户账户信息与通用设置。
-* **自定义 UI 组件**：内置了统一样式的底部导航栏 (`MyBottomNavBar`)、自定义消息弹窗 (`AppMessageDialog`) 等高度可复用的组件。
+| 维度 | 技术选型 | 说明 |
+| :--- | :--- | :--- |
+| **语言** | **Kotlin 2.x** | 全面使用协程、扩展函数等现代语法 |
+| **UI** | **Jetpack Compose** | 声明式组件化开发，支持 Material 3 设计规范 |
+| **异步** | **Coroutines & Flow** | 优雅解决网络请求与耗时任务的线程切换 |
+| **网络** | **Retrofit + OkHttp** | 工业级网络访问框架，支持日志拦截与连接池管理 |
+| **图片** | **Coil (Kotlin-first)** | 深度集成协程的轻量级图片加载引擎 |
+| **架构** | **MVVM + UDF** | 解耦 UI 与数据，提升代码稳定性与可维护性 |
 
-**核心技术栈：**
-* Kotlin
-* Jetpack Compose (UI 框架)
-* Jetpack Navigation Compose (页面路由管理)
-* 现代 Android 架构设计 (分离 `presentation` 与 `domain`)
+---
 
-## 💡 项目的实用性
+## 📂 核心目录结构
 
-本项目具有很高的实用价值和参考意义：
+```text
+com.mrwang.coffeeapp/
+├── data/                    # 数据层：网络配置、API 接口定义
+│   └── network/             # Retrofit 实例化与拦截器配置
+├── domain/                  # 领域层：跨层传输的 POJO/Data Class
+│   └── model/               # 核心业务模型 (支持序列化)
+└── presentation/            # 展示层：UI 逻辑
+    ├── screens/             # 功能页面 (Home, Details, Cart 等)
+    │   └── homescreen/      # 首页模块 (View + ViewModel)
+    ├── navigation/          # 路由管理 (NavGraph)
+    └── ui_components/       # 跨页面复用的原子级 UI 组件
+```
 
-1. **Jetpack Compose 绝佳学习范例**：对于想要从传统 XML 布局过渡到 Compose 声明式开发的开发者来说，本项目展示了如何处理复杂页面、状态提升以及组件化思维。
-2. **电商应用脚手架**：项目内包含了电商 App 最常用的页面流（首页 -> 详情 -> 购物车/支付），其 UI 组件、路由定义 (`NavGraph.kt`) 和主题色彩配置 (`Theme.kt`, `Color.kt`) 可以作为模板直接复用到其他外卖、购物类应用中。
-3. **架构参考**：代码目录结构清晰，将领域模型（`domain/model`）与 UI 表现层（`presentation/screens`）分离，为构建更大型、企业级的 Android 应用打下良好的基础。
+---
 
-## 🚀 用户如何开始项目
+## 🚀 快速启动
 
-想要在本地运行和预览此项目，请按照以下步骤操作：
+1.  **克隆仓库**：
+    ```bash
+    git clone https://github.com/mrwangcoke/coffee.git
+    ```
+2.  **环境配置**：
+    * 使用最新版 Android Studio (Ladybug 或更新)。
+    * Gradle JDK 设置为 17。
+3.  **运行项目**：
+    * App 启动后会通过 `fetchBanners()` 自动向云端拉取图片。
+    * 若处于无网环境，App 将自动触发 **ErrorBoundary** 机制，展示本地兜底资源。
 
-1. **环境准备**：请确保你的电脑上安装了最新版本的 [Android Studio](https://developer.android.com/studio)。
-2. **克隆项目**：
-   打开终端或命令行工具，运行以下命令将项目克隆到本地：
-   ```bash
-   git clone <你的 GitHub 仓库地址>
-   ```
-3. **导入 Android Studio**：
-   * 打开 Android Studio，点击 `Open`。
-   * 选择刚刚克隆下来的 `coffee` 项目文件夹。
-   * 等待 IDE 自动下载相关的 Gradle 依赖包并完成项目同步 (Sync)。
-4. **编译与运行**：
-   * 连接一台 Android 实体设备，或者启动 Android 模拟器。
-   * 点击顶部工具栏的绿色播放按钮 (`Run 'app'`)，即可在设备上体验应用。
-
-## 💬 获取项目帮助
-
-如果在阅读源码、运行项目或进行二次开发时遇到任何疑问，你可以通过以下途径获得帮助：
-
-* **提交 Issue**：欢迎在项目的 GitHub Issues 页面提出你遇到的报错、疑问或功能建议。在提交时，请尽量附上错误日志或截图，以便更快定位问题。
-* **代码阅读指南**：建议新手优先阅读 `NavGraph.kt` 和 `Routes.kt` 来理解应用的页面跳转逻辑，然后深入各个 Screen 文件夹查看具体的 UI 实现。
+---
 
 ## 🤝 维护与贡献
-
-* **主要维护者**：本项目由 **MrWang** 发起并负责核心架构的设计与持续维护。
-* **欢迎贡献**：非常欢迎 Android 开发者社区的朋友们参与到项目中来！无论是修复界面 Bug、优化交互动画，还是希望接入真实的后端 API 来完善业务逻辑，都非常期待你的加入。
-
-**贡献流程：**
-1. Fork 本仓库。
-2. 创建你的特性分支 (`git checkout -b feature/AmazingFeature`)。
-3. 提交你的代码更改 (`git commit -m 'Add some AmazingFeature'`)。
-4. 将分支推送到你的远程仓库 (`git push origin feature/AmazingFeature`)。
-5. 向本仓库发起一个 Pull Request (PR)，我会尽快进行代码审查。
+* **主要负责人**：MrWang
+* **版本说明**：项目目前处于 `V1.2-DynamicData` 阶段，后续将推进“底部商品列表”与“购物车本地持久化 (Room)”的开发。
+* **提交规范**：遵循语义化提交 (Conventional Commits)，如 `feat: add banner network loading`。
 
