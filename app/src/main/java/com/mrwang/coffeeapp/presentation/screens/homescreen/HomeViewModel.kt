@@ -34,7 +34,7 @@ class HomeViewModel : ViewModel() {
             kotlinx.coroutines.delay(1500)
 
             try {
-                // TODO: 等你以后学了后端，这里换成 val urls = NetworkManager.api.getBanners()
+                //  等你以后学了后端，这里换成 val urls = NetworkManager.api.getBanners()
 
                 // 3. 模拟服务器成功返回了你的 3 张 Supabase 图片链接！
                 // ⚠️ 请把下面这三个网址，换成你刚刚测试成功的那 3 个真实链接！
