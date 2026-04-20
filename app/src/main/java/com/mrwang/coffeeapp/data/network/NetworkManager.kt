@@ -26,7 +26,7 @@ object NetworkManager {
     // 4. 创建“采购经理”（Retrofit 实例）
     private val retrofit = Retrofit.Builder()
         // 基础网址（前半部分），注意必须以 / 结尾
-        .baseUrl("https://run.mocky.io/")
+        .baseUrl("https://aloziqbumeyxjukxfiyb.supabase.co/")
         .client(okHttpClient)
         // 告诉 Retrofit 用 Kotlin Serialization 来解析 JSON
         .addConverterFactory(networkJson.asConverterFactory("application/json".toMediaType()))

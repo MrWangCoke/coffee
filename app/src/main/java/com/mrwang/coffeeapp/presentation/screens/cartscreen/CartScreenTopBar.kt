@@ -11,11 +11,11 @@ import androidx.compose.ui.text.style.TextAlign
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartScreenToAppBar() {
+fun CartScreenToAppBar(title: String = "Cart") {
 
     TopAppBar(
         title = {
-            Text("已选商品",
+            Text(title,
                 modifier = Modifier
                     .fillMaxWidth(),
                 textAlign = TextAlign.Center,

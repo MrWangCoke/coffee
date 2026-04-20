@@ -1,6 +1,5 @@
 package com.mrwang.coffeeapp.presentation.screens.homescreen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.mrwang.coffeeapp.R
 import com.mrwang.coffeeapp.domain.model.Product
 import com.mrwang.coffeeapp.presentation.navigation.Routes
@@ -45,13 +45,18 @@ import com.mrwang.coffeeapp.presentation.theme.LightGray
 fun ProductCard(
     product: Product,
     modifier: Modifier=Modifier,
-    navController: NavController
+    navController: NavController,
+    isFavourite: Boolean,
+    onToggleFavourite: (Product) -> Unit,
+    onAddToCart: (Product) -> Unit
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable{navController.navigate(Routes.DetailScreen(product.id))},
+            .clickable{
+                navController.navigate(Routes.DetailScreen(productId = product.id))
+            },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = LightGray
@@ -69,19 +74,21 @@ fun ProductCard(
                     .fillMaxWidth()
                     .height(140.dp)
             ) {
-                Image(
-                    painter = painterResource(product.imageRes),
+                AsyncImage(
+                    model = product.imageUrl, // 👈 使用数据库里存的真实图片网址,
                     contentDescription = "Product Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
+                        .padding(6.dp)
                         .clip(RoundedCornerShape(24.dp))
                 )
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
+                        .clickable { onToggleFavourite(product) }
                         .background(
                             color = LightGray.copy(alpha = 0.8f),
                             shape = RoundedCornerShape(8.dp)
@@ -90,7 +97,7 @@ fun ProductCard(
                 ) {
                     Icon(painter = painterResource(R.drawable.regular_outline_heart),
                         contentDescription = "Add to Favorite",
-                        tint = LightBrown,
+                        tint = if (isFavourite) Color.Red else LightBrown,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -109,7 +116,7 @@ fun ProductCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = product.description,
+                text = product.description?: "No description",
                 style = typography.bodySmall.copy(
                     color = Color.Gray
                 ),
@@ -132,7 +139,7 @@ fun ProductCard(
                     )
                 )
                 IconButton(
-                    onClick = {},
+                    onClick = { onAddToCart(product) },
                     modifier = Modifier.background(
                         color = LightBrown,
                         shape = RoundedCornerShape(10.dp)

@@ -20,4 +20,11 @@ sealed class  Routes {
 
     @Serializable
     object ProfileScreen: Routes()
+
+    @Serializable
+    object SettingsScreen: Routes()
+
+    @Serializable
+    object LoginScreen: Routes() // 👈 检查这里是否漏写了，或者名字是不是叫 Login
+
 }

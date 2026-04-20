@@ -1,6 +1,5 @@
 package com.mrwang.coffeeapp.presentation.screens.cartscreen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,9 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -20,26 +19,29 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.mrwang.coffeeapp.domain.model.Product
+import coil.compose.AsyncImage
+import com.mrwang.coffeeapp.domain.model.OrderItem
+import com.mrwang.coffeeapp.presentation.screens.shop.ProductSelection
 import com.mrwang.coffeeapp.presentation.theme.LightBrown
 import com.mrwang.coffeeapp.presentation.theme.LightGray
 
 
 @Composable
-fun CartItemCard(product: Product) {
-    var qualitity by remember { mutableStateOf(1) }
-
+fun CartItemCard(
+    item: OrderItem,
+    selection: ProductSelection,
+    isChinese: Boolean,
+    onIncrease: () -> Unit,
+    onDecrease: () -> Unit,
+    onRemove: () -> Unit
+) {
+    val product = item.products
     Card(
         modifier = Modifier.fillMaxSize().padding(vertical = 6.dp),
         colors = CardDefaults.cardColors(
@@ -54,20 +56,33 @@ fun CartItemCard(product: Product) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Image(painter = painterResource(id = product.imageRes),
-                contentDescription = "Coffee Image",
-                modifier = Modifier.size(70.dp).clip(RoundedCornerShape(10.dp))
+            AsyncImage(
+                model = product?.imageUrl ?: "",
+                contentDescription = product?.name ?: "Product",
+                contentScale = ContentScale.Crop, // 保持你原来的缩放属性
+                modifier = Modifier.size(80.dp) // 保持你原来的尺寸
             )
             Column(
                 modifier = Modifier.weight(1f).padding(start = 12.dp)
             ) {
-                Text(product.name,
+                Text(
+                    product?.name ?: if (isChinese) "商品已下架" else "Product removed",
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.SemiBold
                     )
                 )
 
-                Text(product.description,
+                val temperatureText = when {
+                    isChinese && selection.temperature == "Hot" -> "热"
+                    isChinese && selection.temperature == "Iced" -> "冰"
+                    else -> selection.temperature
+                }
+                Text(
+                    text = if (isChinese) {
+                        "规格：${selection.size} / $temperatureText"
+                    } else {
+                        "Size: ${selection.size} / $temperatureText"
+                    },
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = Color.DarkGray
                     )
@@ -81,8 +96,7 @@ fun CartItemCard(product: Product) {
 
 
                 IconButton (
-                    onClick = { qualitity-- },
-                    enabled = qualitity > 1,
+                    onClick = onDecrease,
                     modifier = Modifier.background(
                         color = LightBrown.copy(0.1f),
                         shape = CircleShape
@@ -95,14 +109,14 @@ fun CartItemCard(product: Product) {
                         tint = LightBrown
                     )
                 }
-                Text(text = qualitity.toString(),
+                Text(text = item.quantity.toString(),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.SemiBold
                     )
                 )
 
                 IconButton (
-                    onClick = {qualitity++},
+                    onClick = onIncrease,
                     modifier = Modifier.background(
                         color = LightBrown.copy(0.1f),
                         shape = CircleShape
@@ -113,6 +127,21 @@ fun CartItemCard(product: Product) {
                         imageVector = Icons.Default.Add,
                         contentDescription = "Increase",
                         tint = LightBrown
+                    )
+                }
+
+                IconButton (
+                    onClick = onRemove,
+                    modifier = Modifier.background(
+                        color = LightBrown.copy(0.1f),
+                        shape = CircleShape
+                    )
+                        .size(24.dp)
+                ){
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Remove",
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }

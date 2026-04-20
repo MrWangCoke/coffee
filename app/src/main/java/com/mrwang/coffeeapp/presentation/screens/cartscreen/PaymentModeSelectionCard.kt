@@ -37,12 +37,14 @@ import com.mrwang.coffeeapp.R
 import com.mrwang.coffeeapp.presentation.theme.LightBrown
 
 @Composable
-fun PaymentModeSelectionCard(totalAmount : Double ) {
+fun PaymentModeSelectionCard(
+    totalAmount: Double,
+    isChinese: Boolean
+) {
     var expanded by remember { mutableStateOf(false) }
     var selectedMode by remember { mutableStateOf("Online") }
 
-
-    val paymentModes =listOf("Online","Cash")
+    val paymentModes = listOf("Online", "Cash")
 
 
     Card(
@@ -73,7 +75,11 @@ fun PaymentModeSelectionCard(totalAmount : Double ) {
 
                     Column() {
                         Text(
-                            text = selectedMode,
+                            text = when {
+                                isChinese && selectedMode == "Online" -> "在线支付"
+                                isChinese && selectedMode == "Cash" -> "现金支付"
+                                else -> selectedMode
+                            },
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -81,19 +87,11 @@ fun PaymentModeSelectionCard(totalAmount : Double ) {
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        if (selectedMode=="Online"){
-                            Text(
-                                text ="¥ $totalAmount",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = LightBrown
-                            )
-                        }else{
-                            Text(
-                                text ="¥ ${totalAmount+1.0}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = LightBrown
-                            )
-                        }
+                        Text(
+                            text ="¥ ${"%.2f".format(totalAmount)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = LightBrown
+                        )
                     }
 
                 }
@@ -110,7 +108,12 @@ fun PaymentModeSelectionCard(totalAmount : Double ) {
                         paymentModes.forEach {mode->
                             DropdownMenuItem(
                                 text = {
-                                    Text(text = mode,
+                                    Text(
+                                        text = when {
+                                            isChinese && mode == "Online" -> "在线支付"
+                                            isChinese && mode == "Cash" -> "现金支付"
+                                            else -> mode
+                                        },
                                         style = MaterialTheme.typography.bodyLarge)
                                 },
                                 onClick = {
@@ -154,7 +157,7 @@ fun PaymentModeSelectionCard(totalAmount : Double ) {
                     containerColor = LightBrown,
                 )
             ){
-                Text(text="Price Order",
+                Text(text = if (isChinese) "提交订单" else "Place Order",
                     fontSize = 18.sp
                 )
             }

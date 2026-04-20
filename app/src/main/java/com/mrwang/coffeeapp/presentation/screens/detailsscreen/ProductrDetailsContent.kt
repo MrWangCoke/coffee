@@ -1,6 +1,5 @@
 package com.mrwang.coffeeapp.presentation.screens.detailsscreen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,27 +30,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage // 👈 引入网络图片加载库
 import com.mrwang.coffeeapp.R
 import com.mrwang.coffeeapp.domain.model.Product
 import com.mrwang.coffeeapp.presentation.theme.IvoryWhite
 
-
 @Composable
-fun ProductDetailsContent(product: Product,innerPadding: PaddingValues) {
+fun ProductDetailsContent(product: Product, innerPadding: PaddingValues) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
             .padding(innerPadding)
     ) {
-        Image(
-            painter = painterResource(product.imageRes),
+        // 1. 【核心修改】将本地 Image 替换为网络 AsyncImage
+        AsyncImage(
+            model = product.imageUrl ?: "", // 使用数据库里的网络链接，如果为空传空字符串
             contentDescription = product.name,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1.66f)
+                .aspectRatio(1.66f) // 完美保留你设定的宽高比
                 .clip(RoundedCornerShape(16.dp)),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            // 加上占位图和错误图，网络慢的时候体验更好
+            placeholder = painterResource(R.drawable.banner_1),
+            error = painterResource(R.drawable.banner_1)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -60,11 +63,12 @@ fun ProductDetailsContent(product: Product,innerPadding: PaddingValues) {
             text = product.name,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-             color = Color.Black
+            color = Color.Black
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // 冰热选项和你的专属豆子 Icon (保留原样)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -86,7 +90,6 @@ fun ProductDetailsContent(product: Product,innerPadding: PaddingValues) {
                     )
                     .size(36.dp)
                     .padding(6.dp)
-
             )
         }
 
@@ -105,8 +108,9 @@ fun ProductDetailsContent(product: Product,innerPadding: PaddingValues) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        // 2. 【核心修改】处理可空的商品描述，加上 ?: 兜底
         Text(
-            text = product.description,
+            text = product.description ?: "No description yet.",
             fontSize = 16.sp,
             color = Color.Gray,
             fontWeight = FontWeight.Medium
@@ -125,15 +129,16 @@ fun ProductDetailsContent(product: Product,innerPadding: PaddingValues) {
 
         var selectedSizeText by remember { mutableStateOf("M") }
 
+        // Size 选择器 (保留原样)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            listOf("S","M","L").forEach{size->
+            listOf("S", "M", "L").forEach { size ->
                 SelectSizeChip(
                     sizeText = size,
                     selected = selectedSizeText == size,
-                    onClick = {selectedSizeText=size},
+                    onClick = { selectedSizeText = size },
                     Modifier
                         .weight(1f)
                         .height(46.dp)

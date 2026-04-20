@@ -13,10 +13,10 @@ import androidx.compose.ui.tooling.preview.Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
-fun FavouritesScreenTopBar() {
+fun FavouritesScreenTopBar(title: String = "Favourites") {
     TopAppBar(
         title = {
-            Text("Favourite",
+            Text(title,
                 modifier = Modifier
                     .fillMaxWidth(),
                 textAlign = TextAlign.Center,
