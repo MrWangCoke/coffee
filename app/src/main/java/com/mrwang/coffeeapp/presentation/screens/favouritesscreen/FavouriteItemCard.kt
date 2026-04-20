@@ -1,6 +1,5 @@
 package com.mrwang.coffeeapp.presentation.screens.favouritesscreen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
@@ -19,25 +17,25 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.mrwang.coffeeapp.domain.model.Product
+import com.mrwang.coffeeapp.presentation.screens.shop.ProductSelection
 import com.mrwang.coffeeapp.presentation.theme.LightBrown
 import com.mrwang.coffeeapp.presentation.theme.LightGray
 
 @Composable
-fun FavouriteItemCard(product: Product,onRemove: () -> Unit) {
-    var qualitity by remember { mutableStateOf(1) }
-
+fun FavouriteItemCard(
+    product: Product,
+    selection: ProductSelection,
+    isChinese: Boolean,
+    onRemove: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxSize().padding(vertical = 6.dp),
         colors = CardDefaults.cardColors(
@@ -52,9 +50,11 @@ fun FavouriteItemCard(product: Product,onRemove: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Image(painter = painterResource(id = product.imageRes),
-                contentDescription = "Coffee Image",
-                modifier = Modifier.size(70.dp).clip(RoundedCornerShape(10.dp))
+            AsyncImage(
+                model = product.imageUrl ?: "",
+                contentDescription = product.name,
+                contentScale = ContentScale.Crop, // 保持你原来的缩放属性
+                modifier = Modifier.size(80.dp) // 保持你原来的尺寸
             )
             Column(
                 modifier = Modifier.weight(1f).padding(start = 12.dp)
@@ -66,8 +66,17 @@ fun FavouriteItemCard(product: Product,onRemove: () -> Unit) {
                     )
                 )
 
+                val temperatureText = when {
+                    isChinese && selection.temperature == "Hot" -> "热"
+                    isChinese && selection.temperature == "Iced" -> "冰"
+                    else -> selection.temperature
+                }
                 Text(
-                    text = product.description,
+                    text = if (isChinese) {
+                        "规格：${selection.size} / $temperatureText"
+                    } else {
+                        "Size: ${selection.size} / $temperatureText"
+                    },
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = Color.DarkGray
                     )

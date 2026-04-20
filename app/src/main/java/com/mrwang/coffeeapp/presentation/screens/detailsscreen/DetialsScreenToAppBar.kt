@@ -21,7 +21,7 @@ import com.mrwang.coffeeapp.R
 fun DetailsScreenToAppBar(navController: NavController) {
 
     TopAppBar(
-        title = { Text("详情",
+        title = { Text("Details",
             modifier = Modifier
                 .fillMaxWidth(),
             textAlign = TextAlign.Center,

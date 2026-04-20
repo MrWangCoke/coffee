@@ -14,10 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,10 +23,11 @@ import androidx.compose.ui.unit.dp
 import com.mrwang.coffeeapp.R
 import com.mrwang.coffeeapp.presentation.theme.LightBrown
 
-@Preview(showBackground = true)
 @Composable
-fun MySearchBar() {
-    var searchText by remember { mutableStateOf("") }
+fun MySearchBar(
+    searchText: String,
+    onSearchTextChanged: (String) -> Unit
+) {
     Row (
         modifier = Modifier
             .fillMaxWidth(),
@@ -38,7 +35,7 @@ fun MySearchBar() {
     ){
         TextField(
             value = searchText,
-            onValueChange = { searchText =it},
+            onValueChange = onSearchTextChanged,
             placeholder ={Text(text = "Search Coffee", color = Color.Gray )},
             leadingIcon = {
                 Icon(painter = painterResource(R.drawable.regular_outline_search),
@@ -58,7 +55,7 @@ fun MySearchBar() {
                 .weight(1f)
                 .height(60.dp),
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color(0xFF2A2A2A),
                 unfocusedIndicatorColor = Color.Transparent,
                 unfocusedContainerColor = Color(0xFF2A2A2A),
                 focusedIndicatorColor = Color(0xFF422A24),
@@ -90,4 +87,13 @@ fun MySearchBar() {
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MySearchBarPreview() {
+    MySearchBar(
+        searchText = "",
+        onSearchTextChanged = {}
+    )
 }
