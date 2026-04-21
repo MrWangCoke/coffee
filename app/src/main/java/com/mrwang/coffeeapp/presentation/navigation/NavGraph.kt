@@ -1,6 +1,13 @@
 package com.mrwang.coffeeapp.presentation.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -27,8 +34,23 @@ fun NavGraph() {
     val userViewModel: UserViewModel = viewModel()
     val shopViewModel: ShopViewModel = viewModel()
     val appSettingsViewModel: AppSettingsViewModel = viewModel()
+    val isLoggedIn by userViewModel.isLoggedIn.collectAsState()
+    val isSessionRestored by userViewModel.isSessionRestored.collectAsState()
 
-    NavHost(navController=navController, startDestination = Routes.WelcomeScreen){
+    if (!isSessionRestored) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    NavHost(
+        navController = navController,
+        startDestination = if (isLoggedIn) Routes.HomeScreen else Routes.WelcomeScreen
+    ) {
         composable<Routes.WelcomeScreen> {
             WelcomeScreen(navController)
         }

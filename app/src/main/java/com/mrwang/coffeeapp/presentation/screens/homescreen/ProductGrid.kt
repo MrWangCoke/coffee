@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import com.mrwang.coffeeapp.domain.model.Product
 @Composable
 fun ProductGrid(
     products: List<Product>,
+    isLoading: Boolean,
     navController: NavController,
     favouriteProductIds: Set<Int>,
     onToggleFavourite: (Product) -> Unit,
@@ -41,7 +43,18 @@ fun ProductGrid(
         item {
             categoryContent()
         }
-        if (products.isEmpty()) {
+        if (isLoading) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFFD17842))
+                }
+            }
+        } else if (products.isEmpty()) {
             item {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Text(

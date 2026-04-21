@@ -33,12 +33,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.mrwang.coffeeapp.R
 import com.mrwang.coffeeapp.domain.model.Product
 import com.mrwang.coffeeapp.presentation.navigation.Routes
 import com.mrwang.coffeeapp.presentation.theme.IvoryWhite
 import com.mrwang.coffeeapp.presentation.theme.LightBrown
 import com.mrwang.coffeeapp.presentation.theme.LightGray
+import androidx.compose.ui.platform.LocalContext
 
 //产品卡片
 @Composable
@@ -50,6 +53,7 @@ fun ProductCard(
     onToggleFavourite: (Product) -> Unit,
     onAddToCart: (Product) -> Unit
 ) {
+    val context = LocalContext.current
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -75,14 +79,22 @@ fun ProductCard(
                     .height(140.dp)
             ) {
                 AsyncImage(
-                    model = product.imageUrl, // 👈 使用数据库里存的真实图片网址,
+                    model = ImageRequest.Builder(context)
+                        .data(product.imageUrl)
+                        .crossfade(true)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .networkCachePolicy(CachePolicy.ENABLED)
+                        .build(),
                     contentDescription = "Product Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .padding(6.dp)
-                        .clip(RoundedCornerShape(24.dp))
+                        .clip(RoundedCornerShape(24.dp)),
+                    placeholder = painterResource(R.drawable.default_bean),
+                    error = painterResource(R.drawable.default_bean)
                 )
                 Box(
                     modifier = Modifier

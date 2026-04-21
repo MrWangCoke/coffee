@@ -1,13 +1,19 @@
 package com.mrwang.coffeeapp.presentation.screens.homescreen
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.mrwang.coffeeapp.data.network.NetworkManager
-import com.mrwang.coffeeapp.data.network.SupabaseConfig
+import coil.imageLoader
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import com.mrwang.coffeeapp.data.local.AppDatabase
+import com.mrwang.coffeeapp.data.repository.CoffeeRepository
 import com.mrwang.coffeeapp.domain.model.Product
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -38,48 +44,64 @@ data class HomeUiState(
     val categories: List<HomeCategory> = homeCategories,
     val selectedCategory: String = "全部",
     val searchQuery: String = "",
+    val isRefreshing: Boolean = false,
     val errorMessage: String? = null
 )
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = CoffeeRepository(AppDatabase.getInstance(application))
+
     // ViewModel 里会有这些数据：
     val categories = homeCategories
     var selectedCategory = "全部" // 默认选中全部
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    private var preloadImagesJob: Job? = null
 
     init {
-        // ViewModel 一启动，就开始去网上拉取 Banner 数据
-        fetchBanners()
-        fetchAllProducts() // 👇 启动时立刻去拉取咖啡列表
+        observeProducts()
+        observeBanners()
+        refreshHomeContent()
     }
 
-    private fun fetchAllProducts() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingProducts = true) }
-            try {
-                // 向 Supabase 发起请求
-                val products = NetworkManager.api.getProducts(
-                    apiKey = SupabaseConfig.ANON_KEY,
-                    authorization = SupabaseConfig.authorizationHeader
-                )
+    fun refreshHomeContent() {
+        refreshProducts()
+        refreshBanners()
+    }
 
-                _uiState.update {
-                    it.copy(
+    private fun observeProducts() {
+        viewModelScope.launch {
+            repository.productsFlow.collectLatest { products ->
+                _uiState.update { currentState ->
+                    currentState.copy(
                         isLoadingProducts = false,
                         allProducts = products,
                         displayedProducts = filterProducts(
                             products = products,
-                            category = it.selectedCategory,
-                            query = it.searchQuery
+                            category = currentState.selectedCategory,
+                            query = currentState.searchQuery
                         )
                     )
                 }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoadingProducts = false, errorMessage = e.message) }
+                preloadImages(products.mapNotNull { it.imageUrl })
             }
         }
     }
+
+    private fun observeBanners() {
+        viewModelScope.launch {
+            repository.bannerUrlsFlow.collectLatest { bannerUrls ->
+                _uiState.update {
+                    it.copy(
+                        isLoadingBanners = false,
+                        bannerUrls = bannerUrls
+                    )
+                }
+                preloadImages(bannerUrls)
+            }
+        }
+    }
+
     // 👇 处理用户点击分类标签的逻辑
     fun onCategorySelected(category: String) {
         _uiState.update { currentState ->
@@ -124,38 +146,64 @@ class HomeViewModel : ViewModel() {
             matchesCategory && matchesQuery
         }
     }
-    private fun fetchBanners() {
+
+    private fun refreshProducts() {
         viewModelScope.launch {
-            // 1. 告诉 UI，开始转圈圈加载啦
-            _uiState.update { it.copy(isLoadingBanners = true) }
-
-            // 2. 模拟网络请求的耗时（假装请求花了 1.5 秒）
-            kotlinx.coroutines.delay(1500)
-
-            try {
-                //  等你以后学了后端，这里换成 val urls = NetworkManager.api.getBanners()
-
-                // 3. 模拟服务器成功返回了你的 3 张 Supabase 图片链接！
-                // ⚠️ 请把下面这三个网址，换成你刚刚测试成功的那 3 个真实链接！
-                val mySupabaseUrls = listOf(
-                    "https://aloziqbumeyxjukxfiyb.supabase.co/storage/v1/object/public/coffee-assets/banner_1.png",
-                    "https://aloziqbumeyxjukxfiyb.supabase.co/storage/v1/object/public/coffee-assets/pexels-manuel-aldana-321951004-13893740.png",
-                    "https://aloziqbumeyxjukxfiyb.supabase.co/storage/v1/object/public/coffee-assets/pexels-becca-mitchell-32568510-7091089.png"
+            _uiState.update {
+                it.copy(
+                    isLoadingProducts = it.allProducts.isEmpty(),
+                    isRefreshing = true,
+                    errorMessage = null
                 )
-
-                // 4. 数据拿到了，更新广播状态！
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        isLoadingBanners = false,
-                        bannerUrls = mySupabaseUrls
+            }
+            val result = repository.refreshProducts()
+            if (result.isFailure) {
+                _uiState.update {
+                    it.copy(
+                        isLoadingProducts = false,
+                        isRefreshing = false,
+                        errorMessage = result.exceptionOrNull()?.message ?: "Failed to refresh products"
                     )
                 }
-            } catch (e: Exception) {
-                _uiState.update { currentState ->
-                    currentState.copy(
+            } else {
+                _uiState.update { it.copy(isRefreshing = false) }
+            }
+        }
+    }
+
+    private fun refreshBanners() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoadingBanners = it.bannerUrls.isEmpty(),
+                    errorMessage = null
+                )
+            }
+            val result = repository.refreshBanners()
+            if (result.isFailure) {
+                _uiState.update {
+                    it.copy(
                         isLoadingBanners = false,
-                        errorMessage = e.message
+                        errorMessage = result.exceptionOrNull()?.message ?: "Failed to refresh banners"
                     )
+                }
+            }
+        }
+    }
+
+    private fun preloadImages(urls: List<String>) {
+        val application = getApplication<Application>()
+        preloadImagesJob?.cancel()
+        preloadImagesJob = viewModelScope.launch {
+            urls.distinct().forEach { imageUrl ->
+                val request = ImageRequest.Builder(application)
+                    .data(imageUrl)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .networkCachePolicy(CachePolicy.ENABLED)
+                    .build()
+                runCatching {
+                    application.imageLoader.enqueue(request)
                 }
             }
         }
