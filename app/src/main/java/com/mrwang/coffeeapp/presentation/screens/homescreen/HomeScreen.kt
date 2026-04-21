@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -86,6 +87,7 @@ fun HomeScreen(
 
             ProductGrid(
                 products = uiState.displayedProducts, // 👈 关键修改：直接使用状态里的产品列表
+                isLoading = uiState.isLoadingProducts,
                 navController = navController,
                 favouriteProductIds = shopUiState.favouriteProducts.map { it.id }.toSet(),
                 onToggleFavourite = shopViewModel::toggleFavourite,
@@ -123,6 +125,27 @@ fun HomeScreen(
                     Row {
                         Text(location, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                         Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Change", tint = Color.White)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (uiState.isRefreshing) {
+                            Text(
+                                text = if (isChinese) "正在同步最新商品..." else "Syncing latest menu...",
+                                color = Color.Gray,
+                                fontSize = 12.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                        TextButton(onClick = homeViewModel::refreshHomeContent) {
+                            Text(
+                                text = if (isChinese) "刷新" else "Refresh",
+                                color = Color(0xFFD17842)
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(30.dp))
                     MySearchBar(

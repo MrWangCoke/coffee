@@ -1,9 +1,10 @@
 package com.mrwang.coffeeapp.presentation.screens.detailsscreen
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.mrwang.coffeeapp.data.network.NetworkManager
-import com.mrwang.coffeeapp.data.network.SupabaseConfig
+import com.mrwang.coffeeapp.data.local.AppDatabase
+import com.mrwang.coffeeapp.data.repository.CoffeeRepository
 import com.mrwang.coffeeapp.domain.model.Product
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,38 +15,49 @@ import kotlinx.coroutines.launch
 data class DetailsUiState(
     val isLoading: Boolean = true,
     val product: Product? = null,
+    val isRefreshing: Boolean = false,
     val errorMessage: String? = null
 )
 
-class DetailsViewModel : ViewModel() {
+class DetailsViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = CoffeeRepository(AppDatabase.getInstance(application))
+
     private val _uiState = MutableStateFlow(DetailsUiState())
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
 
     fun fetchProductById(productId: Int) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, product = null, errorMessage = null) }
-            try {
-                val products = NetworkManager.api.getProductById(
-                    apiKey = SupabaseConfig.ANON_KEY,
-                    authorization = SupabaseConfig.authorizationHeader,
-                    idFilter = "eq.$productId"
+            val cachedProduct = repository.getCachedProductById(productId)
+            _uiState.update {
+                it.copy(
+                    isLoading = cachedProduct == null,
+                    isRefreshing = true,
+                    product = cachedProduct,
+                    errorMessage = null
                 )
+            }
 
-                val targetProduct = products.firstOrNull()
-
+            val result = repository.refreshProductById(productId)
+            result.onSuccess { remoteProduct ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        product = targetProduct,
-                        errorMessage = if (targetProduct == null) "Product not found" else null
+                        isRefreshing = false,
+                        product = remoteProduct ?: cachedProduct,
+                        errorMessage = if (remoteProduct == null && cachedProduct == null) "Product not found" else null
                     )
                 }
-            } catch (e: Exception) {
+            }.onFailure { throwable ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        product = null,
-                        errorMessage = e.message ?: "Failed to load product details"
+                        isRefreshing = false,
+                        product = cachedProduct,
+                        errorMessage = if (cachedProduct == null) {
+                            throwable.message ?: "Failed to load product details"
+                        } else {
+                            null
+                        }
                     )
                 }
             }

@@ -42,12 +42,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.mrwang.coffeeapp.presentation.settings.AppLanguage
 import com.mrwang.coffeeapp.presentation.settings.AppSettingsViewModel
 import com.mrwang.coffeeapp.presentation.screens.profilescreen.UserViewModel
@@ -66,6 +69,7 @@ fun DetailsScreen(
     appSettingsViewModel: AppSettingsViewModel,
     viewModel: DetailsViewModel = viewModel() // 注入专属 ViewModel
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val shopUiState by shopViewModel.uiState.collectAsState()
     val userId by userViewModel.userId.collectAsState()
@@ -177,13 +181,20 @@ fun DetailsScreen(
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             AsyncImage(
-                                model = product.imageUrl ?: "",
+                                model = ImageRequest.Builder(context)
+                                    .data(product.imageUrl)
+                                    .crossfade(true)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .networkCachePolicy(CachePolicy.ENABLED)
+                                    .build(),
                                 contentDescription = product.name,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(160.dp)
-                                    .clip(RoundedCornerShape(18.dp))
+                                    .clip(RoundedCornerShape(18.dp)),
+                                error = androidx.compose.ui.res.painterResource(com.mrwang.coffeeapp.R.drawable.default_bean)
                             )
 
                             Spacer(modifier = Modifier.height(14.dp))

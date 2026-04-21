@@ -77,7 +77,6 @@ class LoginViewModel : ViewModel() {
                         )
                     }
                 } else {
-                    // TODO: 真实项目中，这里要把 response.accessToken 保存到本地数据库(Room或DataStore)中
                     _uiState.update {
                         it.copy(
                             isLoading = false,
