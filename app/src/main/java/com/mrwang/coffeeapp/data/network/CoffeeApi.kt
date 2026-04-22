@@ -3,6 +3,7 @@ package com.mrwang.coffeeapp.data.network
 
 import com.mrwang.coffeeapp.domain.model.AuthRequest
 import com.mrwang.coffeeapp.domain.model.AuthResponse
+import com.mrwang.coffeeapp.domain.model.Banner
 import com.mrwang.coffeeapp.domain.model.CreateOrderItemRequest
 import com.mrwang.coffeeapp.domain.model.OrderItem
 import com.mrwang.coffeeapp.domain.model.Product
@@ -16,11 +17,11 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface CoffeeApi {
-    // 这里我给你准备了一个真实的测试接口，它会返回 3 张咖啡 Banner 的高清网络链接
-    @GET("v3/d7f8d689-53e3-4b68-8094-1b32f91fa8cc")
-    suspend fun getBanners(): List<String>
-
-    // ... 你之前写的 getBanners() 保留 ...
+    @GET("rest/v1/banners?select=*&is_active=eq.true&order=sort_order.desc,created_at.desc")
+    suspend fun getBanners(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String
+    ): List<Banner>
 
     // Supabase 自动生成的查询所有产品的接口
     @GET("rest/v1/products?select=*")

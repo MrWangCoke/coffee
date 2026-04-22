@@ -48,6 +48,12 @@ import com.mrwang.coffeeapp.presentation.ui_components.AppMessageDialog
 import com.mrwang.coffeeapp.presentation.ui_components.MyButtonNavBar
 import kotlinx.coroutines.delay
 
+private val fallbackBannerImages = listOf(
+    R.drawable.banner_1,
+    R.drawable.coffee_1,
+    R.drawable.coffee_2
+)
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
@@ -201,17 +207,30 @@ fun HomeScreen(
                             }
                         }
                     } else {
-                        // 如果彻底没网或出错，用你原来的本地图片兜底
-                        Box(
+                        // 如果彻底没网或出错，仍然使用本地图片轮播兜底
+                        val fallbackCount = fallbackBannerImages.size
+                        val pagerState = rememberPagerState(pageCount = { fallbackCount })
+
+                        LaunchedEffect(fallbackCount) {
+                            if (fallbackCount > 1) {
+                                while (true) {
+                                    delay(3000)
+                                    val nextPage = (pagerState.currentPage + 1) % fallbackCount
+                                    pagerState.animateScrollToPage(nextPage)
+                                }
+                            }
+                        }
+
+                        HorizontalPager(
+                            state = pagerState,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(160.dp)
-                                .clip(RoundedCornerShape(16.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
+                                .clip(RoundedCornerShape(16.dp))
+                        ) { page ->
                             Image(
-                                painter = painterResource(R.drawable.banner_1),
-                                contentDescription = "Home Banner",
+                                painter = painterResource(fallbackBannerImages[page]),
+                                contentDescription = "Fallback Home Banner",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
