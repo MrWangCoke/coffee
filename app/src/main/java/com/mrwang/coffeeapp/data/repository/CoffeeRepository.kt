@@ -41,12 +41,18 @@ class CoffeeRepository(
 
     suspend fun refreshBanners(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val remoteBanners = NetworkManager.api.getBanners()
+            val remoteBanners = NetworkManager.api.getBanners(
+                apiKey = SupabaseConfig.ANON_KEY,
+                authorization = SupabaseConfig.authorizationHeader
+            )
             database.withTransaction {
                 database.bannerDao().clearBanners()
                 database.bannerDao().insertBanners(
-                    remoteBanners.mapIndexed { index, imageUrl ->
-                        BannerEntity(imageUrl = imageUrl, sortOrder = index)
+                    remoteBanners.map { banner ->
+                        BannerEntity(
+                            imageUrl = banner.imageUrl,
+                            sortOrder = banner.sortOrder
+                        )
                     }
                 )
             }
