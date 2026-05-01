@@ -20,6 +20,7 @@ import com.mrwang.coffeeapp.presentation.screens.detailsscreen.DetailsScreen
 import com.mrwang.coffeeapp.presentation.screens.favouritesscreen.FavouritesScreen
 import com.mrwang.coffeeapp.presentation.screens.homescreen.HomeScreen
 import com.mrwang.coffeeapp.presentation.screens.loginscreen.LoginScreen
+import com.mrwang.coffeeapp.presentation.screens.profilescreen.MerchantOrdersScreen
 import com.mrwang.coffeeapp.presentation.screens.profilescreen.ProfileScreen
 import com.mrwang.coffeeapp.presentation.screens.profilescreen.SettingsScreen
 import com.mrwang.coffeeapp.presentation.screens.profilescreen.UserViewModel
@@ -97,7 +98,17 @@ fun NavGraph() {
             ProfileScreen(
                 navController = navController,
                 userViewModel = userViewModel,
-                appSettingsViewModel = appSettingsViewModel
+                appSettingsViewModel = appSettingsViewModel,
+                shopViewModel = shopViewModel
+            )
+        }
+
+        composable<Routes.MerchantOrdersScreen> {
+            MerchantOrdersScreen(
+                navController = navController,
+                userViewModel = userViewModel,
+                appSettingsViewModel = appSettingsViewModel,
+                shopViewModel = shopViewModel
             )
         }
 

@@ -8,6 +8,7 @@ import com.mrwang.coffeeapp.domain.model.CreateOrderItemRequest
 import com.mrwang.coffeeapp.domain.model.OrderItem
 import com.mrwang.coffeeapp.domain.model.Product
 import com.mrwang.coffeeapp.domain.model.UpdateOrderItemQuantityRequest
+import com.mrwang.coffeeapp.domain.model.UpdateOrderItemStatusRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,10 +17,15 @@ import kotlinx.coroutines.launch
 
 data class ShopUiState(
     val cartItems: List<OrderItem> = emptyList(),
+    val pendingOrders: List<OrderItem> = emptyList(),
+    val completedOrders: List<OrderItem> = emptyList(),
+    val merchantOrders: List<OrderItem> = emptyList(),
     val favouriteProducts: List<Product> = emptyList(),
     val cartSelections: Map<Long, ProductSelection> = emptyMap(),
     val favouriteSelections: Map<Int, ProductSelection> = emptyMap(),
     val isCartLoading: Boolean = false,
+    val isOrdersLoading: Boolean = false,
+    val isMerchantOrdersLoading: Boolean = false,
     val message: String? = null,
     val errorMessage: String? = null
 )
@@ -110,6 +116,223 @@ class ShopViewModel : ViewModel() {
         }
     }
 
+    fun loadCompletedOrders(userId: String?, accessToken: String?) {
+        if (userId.isNullOrBlank() || accessToken.isNullOrBlank()) {
+            _uiState.update { it.copy(completedOrders = emptyList(), isOrdersLoading = false) }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isOrdersLoading = true, errorMessage = null) }
+            try {
+                val items = NetworkManager.api.getCompletedOrderItems(
+                    apiKey = SupabaseConfig.ANON_KEY,
+                    authorization = "Bearer $accessToken",
+                    userIdFilter = "eq.$userId"
+                )
+                _uiState.update {
+                    it.copy(
+                        completedOrders = hydrateCartProducts(items, accessToken),
+                        isOrdersLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isOrdersLoading = false, errorMessage = "Failed to load orders") }
+            }
+        }
+    }
+
+    fun loadPendingOrders(userId: String?, accessToken: String?) {
+        if (userId.isNullOrBlank() || accessToken.isNullOrBlank()) {
+            _uiState.update { it.copy(pendingOrders = emptyList(), isOrdersLoading = false) }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isOrdersLoading = true, errorMessage = null) }
+            try {
+                val items = NetworkManager.api.getPendingOrderItems(
+                    apiKey = SupabaseConfig.ANON_KEY,
+                    authorization = "Bearer $accessToken",
+                    userIdFilter = "eq.$userId"
+                )
+                _uiState.update {
+                    it.copy(
+                        pendingOrders = hydrateCartProducts(items, accessToken),
+                        isOrdersLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isOrdersLoading = false, errorMessage = "Failed to load pending orders") }
+            }
+        }
+    }
+
+    fun loadOrderLists(userId: String?, accessToken: String?) {
+        loadPendingOrders(userId, accessToken)
+        loadCompletedOrders(userId, accessToken)
+    }
+
+    fun loadMerchantOrders(merchantId: String?, accessToken: String?) {
+        if (merchantId.isNullOrBlank() || accessToken.isNullOrBlank()) {
+            _uiState.update { it.copy(merchantOrders = emptyList(), isMerchantOrdersLoading = false) }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isMerchantOrdersLoading = true, errorMessage = null) }
+            try {
+                val items = NetworkManager.api.getMerchantCompletedOrderItems(
+                    apiKey = SupabaseConfig.ANON_KEY,
+                    authorization = "Bearer $accessToken",
+                    merchantIdFilter = "eq.$merchantId"
+                )
+                _uiState.update {
+                    it.copy(
+                        merchantOrders = hydrateCartProducts(items, accessToken),
+                        isMerchantOrdersLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isMerchantOrdersLoading = false, errorMessage = "Failed to load merchant orders") }
+            }
+        }
+    }
+
+    fun completeCartOrder(userId: String?, accessToken: String?) {
+        if (userId.isNullOrBlank() || accessToken.isNullOrBlank()) {
+            _uiState.update { it.copy(errorMessage = "Please log in before placing an order") }
+            return
+        }
+
+        val currentCartItems = _uiState.value.cartItems
+        if (currentCartItems.isEmpty()) {
+            _uiState.update { it.copy(errorMessage = "Cart is empty") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCartLoading = true, errorMessage = null, message = null) }
+            try {
+                currentCartItems.forEach { item ->
+                    NetworkManager.api.updateOrderItemStatus(
+                        apiKey = SupabaseConfig.ANON_KEY,
+                        authorization = "Bearer $accessToken",
+                        idFilter = "eq.${item.id}",
+                        request = UpdateOrderItemStatusRequest(status = "completed")
+                    )
+                }
+
+                val completedItems = currentCartItems.map { it.copy(status = "completed") }
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        cartItems = emptyList(),
+                        cartSelections = emptyMap(),
+                        completedOrders = completedItems + currentState.completedOrders,
+                        isCartLoading = false,
+                        message = "Order completed",
+                        errorMessage = null
+                    )
+                }
+                loadCompletedOrders(userId, accessToken)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isCartLoading = false, errorMessage = "Failed to complete order") }
+            }
+        }
+    }
+
+    fun saveCartAsPendingOrder(userId: String?, accessToken: String?) {
+        if (userId.isNullOrBlank() || accessToken.isNullOrBlank()) {
+            _uiState.update { it.copy(errorMessage = "Please log in before placing an order") }
+            return
+        }
+
+        val currentCartItems = _uiState.value.cartItems
+        if (currentCartItems.isEmpty()) {
+            _uiState.update { it.copy(errorMessage = "Cart is empty") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCartLoading = true, errorMessage = null, message = null) }
+            try {
+                currentCartItems.forEach { item ->
+                    NetworkManager.api.updateOrderItemStatus(
+                        apiKey = SupabaseConfig.ANON_KEY,
+                        authorization = "Bearer $accessToken",
+                        idFilter = "eq.${item.id}",
+                        request = UpdateOrderItemStatusRequest(status = "pending")
+                    )
+                }
+
+                val pendingItems = currentCartItems.map { it.copy(status = "pending") }
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        cartItems = emptyList(),
+                        cartSelections = emptyMap(),
+                        pendingOrders = pendingItems + currentState.pendingOrders,
+                        isCartLoading = false,
+                        message = "Order saved as pending",
+                        errorMessage = null
+                    )
+                }
+                loadPendingOrders(userId, accessToken)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isCartLoading = false, errorMessage = "Failed to save pending order") }
+            }
+        }
+    }
+
+    fun payPendingOrder(item: OrderItem, userId: String?, accessToken: String?) {
+        if (userId.isNullOrBlank() || accessToken.isNullOrBlank()) return
+
+        viewModelScope.launch {
+            try {
+                NetworkManager.api.updateOrderItemStatus(
+                    apiKey = SupabaseConfig.ANON_KEY,
+                    authorization = "Bearer $accessToken",
+                    idFilter = "eq.${item.id}",
+                    request = UpdateOrderItemStatusRequest(status = "completed")
+                )
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        pendingOrders = currentState.pendingOrders.filterNot { it.id == item.id },
+                        completedOrders = listOf(item.copy(status = "completed")) + currentState.completedOrders,
+                        errorMessage = null,
+                        message = "Order completed"
+                    )
+                }
+                loadOrderLists(userId, accessToken)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Failed to pay order") }
+            }
+        }
+    }
+
+    fun cancelPendingOrder(item: OrderItem, userId: String?, accessToken: String?) {
+        if (userId.isNullOrBlank() || accessToken.isNullOrBlank()) return
+
+        viewModelScope.launch {
+            try {
+                NetworkManager.api.deleteCartItem(
+                    apiKey = SupabaseConfig.ANON_KEY,
+                    authorization = "Bearer $accessToken",
+                    idFilter = "eq.${item.id}"
+                )
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        pendingOrders = currentState.pendingOrders.filterNot { it.id == item.id },
+                        errorMessage = null,
+                        message = "Pending order canceled"
+                    )
+                }
+                loadPendingOrders(userId, accessToken)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Failed to cancel pending order") }
+            }
+        }
+    }
+
     fun addToCart(
         product: Product,
         userId: String?,
@@ -146,7 +369,8 @@ class ShopViewModel : ViewModel() {
                         authorization = "Bearer $accessToken",
                         request = CreateOrderItemRequest(
                             userId = userId,
-                            productId = product.id.toLong()
+                            productId = product.id.toLong(),
+                            merchantId = product.merchantId
                         )
                     )
                     loadCart(userId, accessToken)

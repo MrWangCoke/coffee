@@ -8,6 +8,7 @@ data class OrderItem(
     val id: Long,
     @SerialName("user_id") val userId: String,
     @SerialName("product_id") val productId: Long,
+    @SerialName("merchant_id") val merchantId: String? = null,
     val quantity: Int = 1,
     val status: String = "cart",
     @SerialName("created_at") val createdAt: String? = null,
@@ -18,6 +19,7 @@ data class OrderItem(
 data class CreateOrderItemRequest(
     @SerialName("user_id") val userId: String,
     @SerialName("product_id") val productId: Long,
+    @SerialName("merchant_id") val merchantId: String? = null,
     val quantity: Int = 1,
     val status: String = "cart"
 )
@@ -25,4 +27,9 @@ data class CreateOrderItemRequest(
 @Serializable
 data class UpdateOrderItemQuantityRequest(
     val quantity: Int
+)
+
+@Serializable
+data class UpdateOrderItemStatusRequest(
+    val status: String
 )
