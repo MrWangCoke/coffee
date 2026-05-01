@@ -8,6 +8,7 @@ import com.mrwang.coffeeapp.domain.model.CreateOrderItemRequest
 import com.mrwang.coffeeapp.domain.model.OrderItem
 import com.mrwang.coffeeapp.domain.model.Product
 import com.mrwang.coffeeapp.domain.model.UpdateOrderItemQuantityRequest
+import com.mrwang.coffeeapp.domain.model.UpdateOrderItemStatusRequest
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -58,6 +59,27 @@ interface CoffeeApi {
         @Query("user_id") userIdFilter: String
     ): List<OrderItem>
 
+    @GET("rest/v1/order_items?select=*,products(*)&status=eq.completed&order=created_at.desc")
+    suspend fun getCompletedOrderItems(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Query("user_id") userIdFilter: String
+    ): List<OrderItem>
+
+    @GET("rest/v1/order_items?select=*,products(*)&status=eq.pending&order=created_at.desc")
+    suspend fun getPendingOrderItems(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Query("user_id") userIdFilter: String
+    ): List<OrderItem>
+
+    @GET("rest/v1/order_items?select=*,products(*)&status=eq.completed&order=created_at.desc")
+    suspend fun getMerchantCompletedOrderItems(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Query("merchant_id") merchantIdFilter: String
+    ): List<OrderItem>
+
     @POST("rest/v1/order_items")
     suspend fun addCartItem(
         @Header("apikey") apiKey: String,
@@ -73,6 +95,15 @@ interface CoffeeApi {
         @Header("Prefer") prefer: String = "return=minimal",
         @Query("id") idFilter: String,
         @Body request: UpdateOrderItemQuantityRequest
+    )
+
+    @PATCH("rest/v1/order_items")
+    suspend fun updateOrderItemStatus(
+        @Header("apikey") apiKey: String,
+        @Header("Authorization") authorization: String,
+        @Header("Prefer") prefer: String = "return=minimal",
+        @Query("id") idFilter: String,
+        @Body request: UpdateOrderItemStatusRequest
     )
 
     @DELETE("rest/v1/order_items")

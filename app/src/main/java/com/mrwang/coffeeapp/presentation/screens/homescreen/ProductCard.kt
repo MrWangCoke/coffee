@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,7 +42,6 @@ import com.mrwang.coffeeapp.presentation.navigation.Routes
 import com.mrwang.coffeeapp.presentation.theme.IvoryWhite
 import com.mrwang.coffeeapp.presentation.theme.LightBrown
 import com.mrwang.coffeeapp.presentation.theme.LightGray
-import androidx.compose.ui.platform.LocalContext
 
 //产品卡片
 @Composable
@@ -77,6 +77,7 @@ fun ProductCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
+                    .padding(6.dp)
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(context)

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -21,6 +22,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,10 +41,14 @@ import com.mrwang.coffeeapp.presentation.theme.LightBrown
 @Composable
 fun PaymentModeSelectionCard(
     totalAmount: Double,
-    isChinese: Boolean
+    isChinese: Boolean,
+    enabled: Boolean = true,
+    onConfirmPayment: () -> Unit = {},
+    onCancelPayment: () -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedMode by remember { mutableStateOf("Online") }
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     val paymentModes = listOf("Online", "Cash")
 
@@ -148,7 +154,8 @@ fun PaymentModeSelectionCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button (
-                onClick = {  },
+                onClick = { showConfirmDialog = true },
+                enabled = enabled,
                 modifier= Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -162,5 +169,41 @@ fun PaymentModeSelectionCard(
                 )
             }
         }
+    }
+
+    if (showConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = { Text(if (isChinese) "确认支付" else "Confirm Payment") },
+            text = {
+                Text(
+                    if (isChinese) {
+                        "确认支付 ¥ ${"%.2f".format(totalAmount)} 吗？"
+                    } else {
+                        "Pay ¥ ${"%.2f".format(totalAmount)} now?"
+                    }
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showConfirmDialog = false
+                        onConfirmPayment()
+                    }
+                ) {
+                    Text(if (isChinese) "确认支付" else "Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showConfirmDialog = false
+                        onCancelPayment()
+                    }
+                ) {
+                    Text(if (isChinese) "取消" else "Cancel")
+                }
+            }
+        )
     }
 }

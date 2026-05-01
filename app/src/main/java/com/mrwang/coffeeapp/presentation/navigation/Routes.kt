@@ -25,6 +25,9 @@ sealed class  Routes {
     object SettingsScreen: Routes()
 
     @Serializable
+    object MerchantOrdersScreen: Routes()
+
+    @Serializable
     object LoginScreen: Routes() // 👈 检查这里是否漏写了，或者名字是不是叫 Login
 
 }

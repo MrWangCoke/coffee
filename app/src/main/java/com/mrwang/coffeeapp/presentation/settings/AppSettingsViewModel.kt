@@ -11,7 +11,7 @@ enum class AppLanguage {
 }
 
 class AppSettingsViewModel : ViewModel() {
-    private val _language = MutableStateFlow(AppLanguage.English)
+    private val _language = MutableStateFlow(AppLanguage.Chinese)
     val language: StateFlow<AppLanguage> = _language.asStateFlow()
 
     fun setLanguage(language: AppLanguage) {

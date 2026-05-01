@@ -154,7 +154,17 @@ fun CartScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                PaymentModeSelectionCard(totalAmount, isChinese)
+                PaymentModeSelectionCard(
+                    totalAmount = totalAmount,
+                    isChinese = isChinese,
+                    enabled = shopUiState.cartItems.isNotEmpty() && !shopUiState.isCartLoading,
+                    onConfirmPayment = {
+                        shopViewModel.completeCartOrder(userId, accessToken)
+                    },
+                    onCancelPayment = {
+                        shopViewModel.saveCartAsPendingOrder(userId, accessToken)
+                    }
+                )
             }
         }
 
