@@ -28,11 +28,22 @@
           </nav>
 
           <div class="sidebar-footer">
-            <div class="upgrade-box">
-              <p class="text-xs font-bold text-blue-900 mb-1">升级为全能商家</p>
-              <p class="text-[10px] text-blue-700 mb-3 leading-tight">享受更多营销功能和服务</p>
-              <button class="w-full bg-brand-blue text-white py-2 rounded-lg text-xs font-medium" type="button">立即升级</button>
-            </div>
+            <button class="ai-upgrade-btn" type="button" aria-label="Ask AI">
+              <span class="ai-upgrade-content">
+                <svg viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <g fill="none">
+                    <path
+                      d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"
+                    ></path>
+                    <path
+                      d="M9.107 5.448c.598-1.75 3.016-1.803 3.725-.159l.06.16l.807 2.36a4 4 0 0 0 2.276 2.411l.217.081l2.36.806c1.75.598 1.803 3.016.16 3.725l-.16.06l-2.36.807a4 4 0 0 0-2.412 2.276l-.081.216l-.806 2.361c-.598 1.75-3.016 1.803-3.724.16l-.062-.16l-.806-2.36a4 4 0 0 0-2.276-2.412l-.216-.081l-2.36-.806c-1.751-.598-1.804-3.016-.16-3.724l.16-.062l2.36-.806A4 4 0 0 0 8.22 8.025l.081-.216zM11 6.094l-.806 2.36a6 6 0 0 1-3.49 3.649l-.25.091l-2.36.806l2.36.806a6 6 0 0 1 3.649 3.49l.091.25l.806 2.36l.806-2.36a6 6 0 0 1 3.49-3.649l.25-.09l2.36-.807l-2.36-.806a6 6 0 0 1-3.649-3.49l-.09-.25zM19 2a1 1 0 0 1 .898.56l.048.117l.35 1.026l1.027.35a1 1 0 0 1 .118 1.845l-.118.048l-1.026.35l-.35 1.027a1 1 0 0 1-1.845.117l-.048-.117l-.35-1.026l-1.027-.35a1 1 0 0 1-.118-1.845l.118-.048l1.026-.35l.35-1.027A1 1 0 0 1 19 2"
+                      fill="currentColor"
+                    ></path>
+                  </g>
+                </svg>
+                Ask AI
+              </span>
+            </button>
           </div>
         </aside>
 
@@ -40,11 +51,50 @@
           <header class="topbar">
             <div class="flex items-center gap-8">
               <h2 id="page-title" class="text-lg font-bold">${getTitle(state.view)}</h2>
-              <div class="relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                <input class="pl-10 pr-12 py-2 bg-gray-100 border-none rounded-lg text-sm w-80 focus:ring-2 focus:ring-brand-blue" placeholder="搜索订单、商品、客户等" type="text" />
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-400 font-mono">⌘K</span>
-              </div>
+<!-- From Uiverse.io by ahmedyasserdev --> 
+<form class="form relative">
+  <button class="absolute left-2 -translate-y-1/2 top-1/2 p-1">
+    <svg
+      width="17"
+      height="16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-labelledby="search"
+      class="w-5 h-5 text-gray-700"
+    >
+      <path
+        d="M7.667 12.667A5.333 5.333 0 107.667 2a5.333 5.333 0 000 10.667zM14.334 14l-2.9-2.9"
+        stroke="currentColor"
+        stroke-width="1.333"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      ></path>
+    </svg>
+  </button>
+  <input
+    class="input rounded-full px-8 py-3 border-2 border-transparent focus:outline-none focus:border-blue-500 placeholder-gray-400 transition-all duration-300 shadow-md"
+    placeholder="Search..."
+    required=""
+    type="text"
+  />
+  <button type="reset" class="absolute right-3 -translate-y-1/2 top-1/2 p-1">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="w-5 h-5 text-gray-700"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M6 18L18 6M6 6l12 12"
+      ></path>
+    </svg>
+  </button>
+</form>
+
             </div>
 
             <div class="flex items-center gap-5">
